@@ -118,6 +118,25 @@ class Route53:
         self.r53 = boto3.client('route53')
 
 
+    def list_hosted_zones(self):
+        return self.r53.list_hosted_zones().get('HostedZones')
+
+
+    def get_zone(self, name):
+        if name[-1]:
+            name = name+"."
+        zone = [z for z in self.list_hosted_zones() if z.get('Name') == name+"."]
+        if not zone:
+            return None
+        return zone[0]
+
+    def get_zone_id(self, zone=None, name=None):
+        if (not zone) and name:
+            zone = self.get_zone(name)
+        if not zone:
+            return None
+        return zone.get('Id').replace('/hostedzone/', '')
+
     def list_records(self, zone_id):
         return self.r53.list_resource_record_sets(HostedZoneId=zone_id).get("ResourceRecordSets")
 

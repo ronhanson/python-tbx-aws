@@ -123,9 +123,9 @@ class Route53:
 
 
     def get_zone(self, name):
-        if name[-1]:
+        if name[-1]!='.':
             name = name+"."
-        zone = [z for z in self.list_hosted_zones() if z.get('Name') == name+"."]
+        zone = [z for z in self.list_hosted_zones() if z.get('Name') == name]
         if not zone:
             return None
         return zone[0]

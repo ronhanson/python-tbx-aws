@@ -69,8 +69,7 @@ class EC2:
         if not instance:
             instance = self.current_instance()
         tags = instance.tags or []
-        dict_tags = {t.get('Key'): t.get('Value') for t in tags}
-        return dict_tags
+        return {t.get('Key'): t.get('Value') for t in tags}
 
 
     def get_instance_name(self, instance=None):

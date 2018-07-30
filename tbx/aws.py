@@ -144,8 +144,8 @@ class Route53:
 
     def create_record(self, zone_id, source, target, record_type='A', ttl=300):
         if type(target) is list:
-            targets = [{'Value' : v} for v in target]
-            targets_str = ' + '.join(target)
+            targets = [{'Value' : t} for t in target if t]
+            targets_str = ' + '.join([t for t in target if t])
         else:
             targets = [{'Value': target}]
             targets_str = target

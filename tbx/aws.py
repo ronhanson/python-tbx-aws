@@ -142,7 +142,7 @@ class Route53:
         return self.r53.list_resource_record_sets(HostedZoneId=zone_id).get("ResourceRecordSets")
 
 
-    def create_record(self, zone_id, source, target, type='A', ttl=300):
+    def create_record(self, zone_id, source, target, record_type='A', ttl=300):
         if type(target) is list:
             targets = [{'Value' : v} for v in target]
             targets_str = ' + '.join(target)
@@ -158,7 +158,7 @@ class Route53:
                         'Action': 'UPSERT',
                         'ResourceRecordSet': {
                             'Name': source,
-                            'Type': type,
+                            'Type': record_type,
                             'TTL': ttl,
                             'ResourceRecords': targets
                         }
@@ -176,7 +176,7 @@ class Route53:
 
         if matching_records:
             matching_records = matching_records[0]
-            type = matching_records.get('Type')
+            record_type = matching_records.get('Type')
             values = matching_records.get('ResourceRecords')
             ttl = matching_records.get('TTL')
             return self.r53.change_resource_record_sets(
@@ -187,7 +187,7 @@ class Route53:
                             'Action': 'DELETE',
                             'ResourceRecordSet': {
                                 'Name': source,
-                                'Type': type,
+                                'Type': record_type,
                                 'TTL': ttl,
                                 'ResourceRecords': values
                             }

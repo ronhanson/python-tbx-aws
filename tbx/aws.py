@@ -129,6 +129,7 @@ class Route53:
             return None
         return zone[0]
 
+
     def get_zone_id(self, zone=None, name=None):
         if (not zone) and name:
             zone = self.get_zone(name)
@@ -136,15 +137,22 @@ class Route53:
             return None
         return zone.get('Id').replace('/hostedzone/', '')
 
+
     def list_records(self, zone_id):
         return self.r53.list_resource_record_sets(HostedZoneId=zone_id).get("ResourceRecordSets")
 
 
-    def create_record(self, zone_id, source, target, type='CNAME', ttl=300):
+    def create_record(self, zone_id, source, target, type='A', ttl=300):
+        if type(target) is list:
+            targets = [{'Value' : v} for v in target]
+            targets_str = ' + '.join(target)
+        else:
+            targets = [{'Value': target}]
+            targets_str = target
         return self.r53.change_resource_record_sets(
             HostedZoneId=zone_id,
             ChangeBatch= {
-                'Comment': 'add %s -> %s' % (source, target),
+                'Comment': 'add %s -> %s' % (source, targets_str),
                 'Changes': [
                     {
                         'Action': 'UPSERT',
@@ -152,7 +160,7 @@ class Route53:
                             'Name': source,
                             'Type': type,
                             'TTL': ttl,
-                            'ResourceRecords': [{'Value': target}]
+                            'ResourceRecords': targets
                         }
                     }
                 ]

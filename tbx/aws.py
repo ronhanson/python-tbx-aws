@@ -19,7 +19,6 @@ import requests
 
 class EC2:
 
-
     def __init__(self, region=None):
         self.__instance_metadata = None
         self.__instance_object = None
@@ -42,12 +41,10 @@ class EC2:
     def current_region(self):
         return self.current_instance_metadata().get('region')
 
-
     def reload(self):
         self.__instance_metadata = None
         self.__instance_object = None
         return self.current_instance
-
 
     def instance(self, id=None):
         instance_id = id
@@ -60,10 +57,8 @@ class EC2:
             self.__instance_object = instance
         return instance
 
-
     def current_instance(self):
         return self.instance()
-
 
     def get_instance_tags(self, instance=None):
         if not instance:
@@ -71,12 +66,13 @@ class EC2:
         tags = instance.tags or []
         return {t.get('Key'): t.get('Value') for t in tags}
 
-
     def get_instance_name(self, instance=None):
         return self.instance_tags(instance).get('Name')
 
-
-    def get_instances_by_tags(self, tags={}):
+    def get_instances_by_tags(self, tags=None, **kwargs):
+        if not tags:
+            tags = {}
+        tags.update(kwargs)
         all_instances = self.ec2.instances.all()
         found_instances = []
         for instance in all_instances:
@@ -90,16 +86,20 @@ class EC2:
                 found_instances.append(instance)
         return found_instances
 
-
-    def create_tags(self, instance=None, tags={}):
+    def create_tags(self, instance=None, tags=None, **kwargs):
         if not instance:
             instance = self.current_instance()
         if tags:
+            tags.update(kwargs)
             tags = [{'Key': key, 'Value': value} for key, value in tags.items()]
             instance.create_tags(Tags=tags)
             instance.reload()
         return instance
 
+    def create_tag(self, instance=None, key=None, value=None):
+        if key:
+            instance = self.create_tags(instance=instance, tags={key: value})
+        return instance
 
     def delete_tags(self, instance=None, tags=[]):
         if not instance:
@@ -110,16 +110,19 @@ class EC2:
             instance.reload()
         return instance
 
+    def delete_tag(self, instance=None, tag=None):
+        if tag:
+            instance = self.delete_tags(instance, tags=[tag])
+        return instance
+
 
 class Route53:
 
     def __init__(self):
         self.r53 = boto3.client('route53')
 
-
     def list_hosted_zones(self):
         return self.r53.list_hosted_zones().get('HostedZones')
-
 
     def get_zone(self, name):
         if name[-1]!='.':
@@ -129,7 +132,6 @@ class Route53:
             return None
         return zone[0]
 
-
     def get_zone_id(self, zone=None, name=None):
         if (not zone) and name:
             zone = self.get_zone(name)
@@ -137,15 +139,13 @@ class Route53:
             return None
         return zone.get('Id').replace('/hostedzone/', '')
 
-
     def list_records(self, zone_id):
         return self.r53.list_resource_record_sets(HostedZoneId=zone_id).get("ResourceRecordSets")
 
-
     def create_record(self, zone_id, source, target, record_type='A', ttl=300):
         if type(target) is list:
-            targets = [{'Value' : t} for t in target if t]
-            targets_str = ' + '.join([t for t in target if t])
+            targets = [{'Value' : v} for v in target]
+            targets_str = ' + '.join(target)
         else:
             targets = [{'Value': target}]
             targets_str = target
@@ -166,7 +166,6 @@ class Route53:
                 ]
             }
         )
-
 
     def delete_record(self, zone_id, source):
         if source[-1] != '.':

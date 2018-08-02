@@ -8,3 +8,4 @@
 2018-07-30	--	v0.1.5	-- Added possibility to create dns records with multiple ip as target
 2018-07-30	--	v0.1.6	-- Fix
 2018-07-30	--	v0.1.7	-- Fix
+2018-08-02	--	v0.1.8	-- Small addon
